@@ -84,3 +84,6 @@ apps/examples/e2e/test-results
 apps/examples/playwright-report
 
 docs/gen
+
+package/*
+tldraw-assets/*

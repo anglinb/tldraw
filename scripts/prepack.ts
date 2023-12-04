@@ -42,16 +42,20 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 		},
 		files: [...(manifest.files ?? []), 'dist-esm', 'dist-cjs', 'src'],
 		dependencies: {
-			...(Object.entries(manifest.dependencies ?? {}).reduce((acc, [key, value]) => {
-					if (key.startsWith('@tldraw/')) {
-						// Get the sha & redirect the dependency to the tldraw-assets repo
-						value = `git+https://github.com/superwall-me/tldraw-assets#${key.replace('@tldraw/', '')}-${manifest.version.split('.')[-1]}`
-					}
+			...Object.entries(manifest.dependencies ?? {}).reduce((acc, [key, value]) => {
+				if (key.startsWith('@tldraw/')) {
+					// Get the sha & redirect the dependency to the tldraw-assets repo
+					value = `git+https://github.com/superwall-me/tldraw-assets#${key.replace(
+						'@tldraw/',
+						''
+					)}-${manifest.version}`
+				}
 				return {
-				...acc,
-				[key]: value,
-			}}, {}))
-		}
+					...acc,
+					[key]: value,
+				}
+			}, {}),
+		},
 	})
 	writeFileSync(
 		path.join(sourcePackageDir, 'package.json'),
