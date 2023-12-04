@@ -258,7 +258,7 @@ export async function publish() {
 		await exec(`git`, ['commit', '-m', `Publish ${unscopedName}@${newVersion}`],{ pwd: './tldraw-assets' })
 
 		// Push
-		await exec(`git`, ['push', '-u', 'origin', `${unscopedName}-${newVersion}`],{ pwd: './tldraw-assets' })
+		await exec(`git`, ['push', '-f', '-u', 'origin', `${unscopedName}-${newVersion}`],{ pwd: './tldraw-assets' })
 
 		// Remove the tarball
 		try {
