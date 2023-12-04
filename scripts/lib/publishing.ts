@@ -190,6 +190,64 @@ export async function publish() {
 				numAttempts: 10,
 			}
 		)
+
+		const newVersion = packageDetails.version
+		const unscopedName = packageDetails.name.replace('@tldraw/', '')
+
+
+		// Remove the tldraw-assets repo
+		try {
+			await exec(`rm`, ['-rf', 'tldraw-assets'])
+		} catch {
+			// ignore
+		}
+
+		// Remove the tarball
+		try {
+			await exec(`rm`, ['-rf',`${unscopedName}-${newVersion}.tgz`])
+		} catch {
+			// ignore
+		}
+
+		// Remove 
+		try {
+			await exec(`rm`, ['-rf',`./package`])
+		} catch {
+			// ignore
+		}
+
+		// Once we've made sure it's avialble on the registry, we're going to download
+		// the tarball and upload it to our github repo
+		// 	curl http://127.0.0.1:4873/@tldraw/tldraw/-/tldraw-2.0.0-canary.fe9e0d5de535.tgz > out.tgz
+		await exec(`curl`, [
+			'-O',
+			`http://127.0.0.1:4873/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`,
+		])
+
+		// Clone the tldraw-assets repo
+		await exec(`git`, ['clone', 'https://github.com/superwall-me/tldraw-assets.git'])
+
+		// Extract the tarball into the tldraw-assets repo
+		await exec(`tar`, ['-xzf', `${unscopedName}-${newVersion}.tgz`, '-C', './'])
+
+		// Move `/package` into `/packages/${unscopedName}`
+		// Using nodejs copy all files from `/package` into
+		// `/packages/${unscopedName}`
+		await exec(`cp`, ['-r', 'package/*', `tldraw-assets/packages/${unscopedName}`])
+
+
+		// Checkout the branch
+		await exec(`git`, ['checkout', '-b', `${unscopedName}-${newVersion}`], { pwd: path.join(__dirname, 'tldraw-assets') })
+
+		// Add everything 
+		await exec(`git`, ['add', '.'], { pwd: path.join(__dirname, 'tldraw-assets') })
+
+		// Commit
+		await exec(`git`, ['commit', '-m', `Publish ${unscopedName}@${newVersion}`], { pwd: path.join(__dirname, 'tldraw-assets') })
+
+		// Push
+		await exec(`git`, ['push', '-u', 'origin', `${unscopedName}-${newVersion}`], { pwd: path.join(__dirname, 'tldraw-assets') })
+
 	}
 }
 
