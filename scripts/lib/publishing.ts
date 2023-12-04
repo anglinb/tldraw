@@ -6,6 +6,23 @@ import { compare, parse } from 'semver'
 import { exec } from './exec'
 import { BUBLIC_ROOT } from './file'
 import { nicelog } from './nicelog'
+import fs from 'fs';
+
+const copyRecursiveSync = (src: string, dest: string) => {
+    const exists = fs.existsSync(src);
+    const stats = exists && fs.statSync(src);
+    const isDirectory = exists && stats && stats.isDirectory();
+    if (isDirectory) {
+        fs.mkdirSync(dest, { recursive: true });
+        fs.readdirSync(src).forEach(childItemName => {
+            copyRecursiveSync(path.join(src, childItemName),
+                              path.join(dest, childItemName));
+        });
+    } else {
+        fs.copyFileSync(src, dest);
+    }
+};
+
 
 export type PackageDetails = {
 	name: string
@@ -202,12 +219,7 @@ export async function publish() {
 			// ignore
 		}
 
-		// Remove the tarball
-		try {
-			await exec(`rm`, ['-rf',`${unscopedName}-${newVersion}.tgz`])
-		} catch {
-			// ignore
-		}
+
 
 		// Remove 
 		try {
@@ -233,21 +245,42 @@ export async function publish() {
 		// Move `/package` into `/packages/${unscopedName}`
 		// Using nodejs copy all files from `/package` into
 		// `/packages/${unscopedName}`
-		await exec(`cp`, ['-r', 'package/*', `tldraw-assets/packages/${unscopedName}`])
-
+		// await exec(`cp`, ['-r', './package/*', `tldraw-assets/`] )
+		copyRecursiveSync('./package/', `./tldraw-assets`)
 
 		// Checkout the branch
-		await exec(`git`, ['checkout', '-b', `${unscopedName}-${newVersion}`], { pwd: path.join(__dirname, 'tldraw-assets') })
+		await exec(`git`, ['checkout', '-b', `${unscopedName}-${newVersion}`], { pwd: './tldraw-assets' })
 
 		// Add everything 
-		await exec(`git`, ['add', '.'], { pwd: path.join(__dirname, 'tldraw-assets') })
+		await exec(`git`, ['add', '.'],{ pwd: './tldraw-assets' })
 
 		// Commit
-		await exec(`git`, ['commit', '-m', `Publish ${unscopedName}@${newVersion}`], { pwd: path.join(__dirname, 'tldraw-assets') })
+		await exec(`git`, ['commit', '-m', `Publish ${unscopedName}@${newVersion}`],{ pwd: './tldraw-assets' })
 
 		// Push
-		await exec(`git`, ['push', '-u', 'origin', `${unscopedName}-${newVersion}`], { pwd: path.join(__dirname, 'tldraw-assets') })
+		await exec(`git`, ['push', '-u', 'origin', `${unscopedName}-${newVersion}`],{ pwd: './tldraw-assets' })
 
+		// Remove the tarball
+		try {
+			await exec(`rm`, ['-rf',`${unscopedName}-${newVersion}.tgz`])
+		} catch {
+			// ignore
+		}
+
+		// Remove the tldraw-assets repo
+		try {
+			await exec(`rm`, ['-rf', 'tldraw-assets'])
+		} catch {
+			// ignore
+		}
+
+		// Remove 
+		try {
+			await exec(`rm`, ['-rf',`./package`])
+		} catch {
+			// ignore
+		}
+		
 	}
 }
 
