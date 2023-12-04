@@ -18,11 +18,12 @@ async function main() {
 	}
 
 	// module was called directly
-	const bumpType = (await exec('npx', ['auto', 'version'])).trim() as
-		| 'major'
-		| 'minor'
-		| 'patch'
-		| ''
+	// const bumpType = (await exec('npx', ['auto', 'version'])).trim() as
+	// 	| 'major'
+	// 	| 'minor'
+	// 	| 'patch'
+	// 	| ''
+	const bumpType = 'patch' as 'major' | 'minor' | 'patch' | ''
 
 	nicelog('bumpType', bumpType)
 	if (bumpType === '') {

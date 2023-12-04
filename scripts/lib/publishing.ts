@@ -109,13 +109,14 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 }
 
 export async function publish() {
-	const npmToken = process.env.NPM_TOKEN
-	if (!npmToken) {
-		throw new Error('NPM_TOKEN not set')
-	}
+	// const npmToken = process.env.NPM_TOKEN
+	// if (!npmToken) {
+	// 	throw new Error('NPM_TOKEN not set')
+	// }
+	const npmToken = 'sr8yMiDOGOGgbLKyquniig=='
 
 	execSync(`yarn config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
-	execSync(`yarn config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
+	execSync(`yarn config set npmRegistryServer http://127.0.0.1:4873`, { stdio: 'inherit' })
 
 	const packages = getAllPackageDetails()
 
@@ -175,7 +176,7 @@ export async function publish() {
 				const newVersion = packageDetails.version
 				const unscopedName = packageDetails.name.replace('@tldraw/', '')
 
-				const url = `https://registry.npmjs.org/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`
+				const url = `http://127.0.0.1:4873/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`
 				nicelog('looking for package at url: ', url)
 				const res = await fetch(url, {
 					method: 'HEAD',
